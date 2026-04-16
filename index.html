@@ -1,732 +1,716 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="es">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2575.7">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K-Dispatch: Héroes de la Ciudad</title>
+    <style>
+        :root {
+            --bg-color: #050a1a;
+            --primary: #00d4ff;
+            --secondary: #0055ff;
+            --accent: #ffffff;
+            --danger: #ff4d4d;
+            --success: #00ff88;
+            --panel-bg: rgba(0, 40, 80, 0.8);
+            --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--accent);
+            font-family: var(--font-main);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* --- UI DE FONDO Y SCANLINES --- */
+        .scanlines {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 900px;
+            height: 600px;
+            background: var(--panel-bg);
+            border: 2px solid var(--primary);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- HUD --- */
+        #hud {
+            display: none;
+            justify-content: space-between;
+            padding: 15px 25px;
+            background: rgba(0, 20, 40, 0.9);
+            border-bottom: 1px solid var(--primary);
+            font-family: 'Courier New', Courier, monospace;
+            z-index: 10;
+        }
+
+        .hud-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .hud-label {
+            font-size: 0.7rem;
+            color: var(--primary);
+            text-transform: uppercase;
+        }
+
+        .hud-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-shadow: 0 0 5px var(--primary);
+        }
+
+        /* --- SCREENS --- */
+        .screen {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* --- START SCREEN --- */
+        #start-screen {
+            background: radial-gradient(circle, #0a1f44 0%, #050a1a 100%);
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            text-align: center;
+            margin-bottom: 0px;
+            color: var(--danger); /* ROJO */
+            text-shadow: 0 0 20px var(--danger);
+            letter-spacing: 8px;
+        }
+
+        .signature {
+            font-size: 1rem;
+            color: var(--secondary); /* AZUL */
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px var(--secondary);
+        }
+
+        .subtitle {
+            margin-bottom: 40px;
+            letter-spacing: 2px;
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            background: var(--primary);
+            color: var(--bg-color);
+            box-shadow: 0 0 20px var(--primary);
+        }
+
+        /* --- GAME MECHANICS --- */
+        .instruction {
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            text-align: center;
+            max-width: 80%;
+        }
+
+        /* Level 1: IA Filter */
+        .node-container {
+            width: 100%;
+            height: 300px;
+            position: relative;
+            border: 1px dashed rgba(255,255,255,0.1);
+        }
+
+        .node {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.8rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(255,255,255,0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+        }
+
+        /* Level 2: GPS */
+        .map-bg {
+            width: 600px;
+            height: 350px;
+            background: #0a1a2a;
+            border: 1px solid var(--primary);
+            position: relative;
+            cursor: crosshair;
+            background-image: 
+                linear-gradient(rgba(0, 212, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .map-landmark {
+            position: absolute;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: #555;
+        }
+
+        /* Level 3: Dispatch */
+        .dispatch-grid {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .unit-card {
+            width: 150px;
+            padding: 15px;
+            border: 1px solid var(--secondary);
+            background: rgba(0, 85, 255, 0.1);
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .unit-card:hover {
+            background: var(--secondary);
+            transform: translateY(-5px);
+        }
+
+        .incident-box {
+            background: rgba(255, 77, 77, 0.2);
+            border: 1px solid var(--danger);
+            padding: 15px;
+            margin-bottom: 20px;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Level 4: Cameras */
+        .camera-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .camera-feed {
+            height: 180px;
+            background: #000;
+            border: 2px solid #333;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        .camera-feed::before {
+            content: "CAM " attr(data-id);
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-size: 0.6rem;
+            color: #666;
+        }
+
+        .camera-feed.alert-active {
+            border-color: var(--danger);
+            box-shadow: inset 0 0 15px var(--danger);
+            animation: blink-danger 1s infinite;
+        }
+
+        @keyframes blink-danger {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .cam-status {
+            font-size: 0.8rem;
+            color: var(--success);
+            margin-top: 10px;
+        }
+
+        .alert-active .cam-status {
+            color: var(--danger);
+            font-weight: bold;
+        }
+
+        /* Level 5: Report Sorting */
+        .sortable-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 300px;
+        }
+
+        .sort-item {
+            padding: 10px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid var(--primary);
+            cursor: grab;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* MODALS & MESSAGES */
+        #feedback {
+            position: absolute;
+            bottom: 20px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            opacity: 0;
+            transition: 0.3s;
+            z-index: 200;
+        }
+
+        .show-feedback {
+            opacity: 1 !important;
+        }
+
+        /* GAME OVER & WIN */
+        .result-title {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .victory-message {
+            font-size: 1.5rem;
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px var(--primary);
+            font-style: italic;
+        }
+
+        .stats {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .stats p { font-size: 1.4rem; margin: 5px; }
+
+        /* MISC */
+        .hidden { display: none; }
+        .success-text { color: var(--success); }
+        .danger-text { color: var(--danger); }
+        
+    </style>
 </head>
 <body>
-<p class="p1">&lt;!DOCTYPE html&gt;</p>
-<p class="p1">&lt;html lang="es"&gt;</p>
-<p class="p1">&lt;head&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;title&gt;K-Dispatch: Héroes de la Ciudad&lt;/title&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;style&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>:root {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>--bg-color: #050a1a;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>--primary: #00d4ff;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>--secondary: #0055ff;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>--accent: #ffffff;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>--danger: #ff4d4d;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>--success: #00ff88;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>--panel-bg: rgba(0, 40, 80, 0.8);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>--font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>* {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>box-sizing: border-box;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>user-select: none;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>body {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin: 0;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 0;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background-color: var(--bg-color);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: var(--accent);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-family: var(--font-main);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>overflow: hidden;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>justify-content: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>align-items: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>height: 100vh;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>/* --- UI DE FONDO Y SCANLINES --- */</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.scanlines {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>position: fixed;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>top: 0; left: 0; width: 100%; height: 100%;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">                        </span>linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background-size: 100% 4px, 3px 100%;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>pointer-events: none;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>z-index: 100;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>#game-container {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>width: 100%;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>max-width: 900px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>height: 600px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: var(--panel-bg);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border: 2px solid var(--primary);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>position: relative;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>flex-direction: column;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>overflow: hidden;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>/* --- HUD --- */</p>
-<p class="p1"><span class="Apple-converted-space">        </span>#hud {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: none;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>justify-content: space-between;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 15px 25px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: rgba(0, 20, 40, 0.9);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-bottom: 1px solid var(--primary);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-family: 'Courier New', Courier, monospace;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>z-index: 10;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.hud-item {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>flex-direction: column;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.hud-label {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 0.7rem;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: var(--primary);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-transform: uppercase;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.hud-value {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 1.2rem;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-weight: bold;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-shadow: 0 0 5px var(--primary);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>/* --- SCREENS --- */</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.screen {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>flex: 1;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: none;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>flex-direction: column;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>justify-content: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>align-items: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 20px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>position: relative;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.screen.active {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>/* --- START SCREEN --- */</p>
-<p class="p1"><span class="Apple-converted-space">        </span>#start-screen {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: radial-gradient(circle, #0a1f44 0%, #050a1a 100%);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>h1 {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 3.5rem;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-align: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 0px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: var(--danger); /* ROJO */</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-shadow: 0 0 20px var(--danger);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>letter-spacing: 8px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.signature {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 1rem;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: var(--secondary); /* AZUL */</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-transform: uppercase;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>letter-spacing: 3px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-weight: bold;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 15px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-shadow: 0 0 10px var(--secondary);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.subtitle {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 40px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>letter-spacing: 2px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: #ccc;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 0.9rem;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.btn {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 15px 40px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: transparent;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border: 2px solid var(--primary);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: var(--primary);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 1.1rem;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-weight: bold;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>cursor: pointer;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>transition: 0.3s;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-transform: uppercase;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>position: relative;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>overflow: hidden;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.btn:hover {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: var(--primary);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: var(--bg-color);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>box-shadow: 0 0 20px var(--primary);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>/* --- GAME MECHANICS --- */</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.instruction {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 20px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 1.2rem;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-align: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>max-width: 80%;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>/* Level 1: IA Filter */</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.node-container {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>width: 100%;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>height: 300px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>position: relative;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border: 1px dashed rgba(255,255,255,0.1);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.node {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>position: absolute;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>width: 40px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>height: 40px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 50%;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>cursor: pointer;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>justify-content: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>align-items: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 0.8rem;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>animation: pulse 2s infinite;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>@keyframes pulse {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }</p>
-<p class="p1"><span class="Apple-converted-space">            </span>70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(255,255,255,0); }</p>
-<p class="p1"><span class="Apple-converted-space">            </span>100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0); }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>/* Level 2: GPS */</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.map-bg {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>width: 600px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>height: 350px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: #0a1a2a;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border: 1px solid var(--primary);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>position: relative;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>cursor: crosshair;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background-image:<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">                </span>linear-gradient(rgba(0, 212, 255, 0.1) 1px, transparent 1px),</p>
-<p class="p1"><span class="Apple-converted-space">                </span>linear-gradient(90deg, rgba(0, 212, 255, 0.1) 1px, transparent 1px);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background-size: 40px 40px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.map-landmark {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>position: absolute;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: rgba(255,255,255,0.05);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border: 1px solid rgba(255,255,255,0.2);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>align-items: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>justify-content: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 0.7rem;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: #555;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>/* Level 3: Dispatch */</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.dispatch-grid {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>gap: 20px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-top: 20px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.unit-card {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>width: 150px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 15px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border: 1px solid var(--secondary);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: rgba(0, 85, 255, 0.1);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-align: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>cursor: pointer;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>transition: 0.2s;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.unit-card:hover {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: var(--secondary);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>transform: translateY(-5px);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.incident-box {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: rgba(255, 77, 77, 0.2);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border: 1px solid var(--danger);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 15px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 20px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>width: 100%;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-align: center;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>/* Level 4: Cameras */</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.camera-grid {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: grid;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>grid-template-columns: 1fr 1fr;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>gap: 15px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>width: 100%;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>max-width: 600px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.camera-feed {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>height: 180px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: #000;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border: 2px solid #333;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>position: relative;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>flex-direction: column;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>justify-content: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>align-items: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>cursor: pointer;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>transition: border-color 0.3s;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.camera-feed::before {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>content: "CAM " attr(data-id);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>position: absolute;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>top: 5px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>left: 5px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 0.6rem;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: #666;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.camera-feed.alert-active {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-color: var(--danger);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>box-shadow: inset 0 0 15px var(--danger);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>animation: blink-danger 1s infinite;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>@keyframes blink-danger {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>0% { opacity: 1; }</p>
-<p class="p1"><span class="Apple-converted-space">            </span>50% { opacity: 0.7; }</p>
-<p class="p1"><span class="Apple-converted-space">            </span>100% { opacity: 1; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.cam-status {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 0.8rem;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: var(--success);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-top: 10px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.alert-active .cam-status {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: var(--danger);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-weight: bold;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>/* Level 5: Report Sorting */</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.sortable-list {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>flex-direction: column;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>gap: 10px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>width: 300px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.sort-item {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 10px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: rgba(0, 212, 255, 0.1);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border: 1px solid var(--primary);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>cursor: grab;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>justify-content: space-between;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>/* MODALS &amp; MESSAGES */</p>
-<p class="p1"><span class="Apple-converted-space">        </span>#feedback {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>position: absolute;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>bottom: 20px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-weight: bold;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 1.2rem;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>opacity: 0;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>transition: 0.3s;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>z-index: 200;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.show-feedback {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>opacity: 1 !important;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>/* GAME OVER &amp; WIN */</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.result-title {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 3rem;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 20px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.victory-message {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 1.5rem;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: var(--primary);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-align: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 20px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-shadow: 0 0 10px var(--primary);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-style: italic;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.stats {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 30px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-align: center;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.stats p { font-size: 1.4rem; margin: 5px; }</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>/* MISC */</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.hidden { display: none; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.success-text { color: var(--success); }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.danger-text { color: var(--danger); }</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</p>
-<p class="p1">&lt;/head&gt;</p>
-<p class="p1">&lt;body&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="scanlines"&gt;&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div id="game-container"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;!-- HUD --&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div id="hud"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="hud-item"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;span class="hud-label"&gt;Operador&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;span class="hud-value" id="hud-user"&gt;DESPACHADOR-01&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="hud-item"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;span class="hud-label"&gt;Nivel&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;span class="hud-value" id="hud-level"&gt;1 / 5&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="hud-item"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;span class="hud-label"&gt;Tiempo&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;span class="hud-value" id="hud-time"&gt;60&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="hud-item"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;span class="hud-label"&gt;Puntaje&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;span class="hud-value" id="hud-score"&gt;0000&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;!-- PANTALLA INICIO --&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div id="start-screen" class="screen active"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;h1&gt;K-DISPATCH&lt;/h1&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="signature"&gt;by kabat one&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;p class="subtitle"&gt;HÉROES DE LA CIUDAD&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;button class="btn" onclick="game.start()"&gt;Iniciar Misión&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;!-- PANTALLA NIVEL 1: FILTRO IA --&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div id="level-1" class="screen"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="instruction"&gt;FILTRO DE IA: Elimina las &lt;span class="danger-text"&gt;Alertas Falsas&lt;/span&gt; (Blancas) y procesa las &lt;span class="danger-text"&gt;Emergencias Reales&lt;/span&gt; (Rojas).&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="node-container" id="l1-container"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div id="l1-counter" style="margin-top:10px;"&gt;Procesados: 0 / 10&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;!-- PANTALLA NIVEL 2: GPS --&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div id="level-2" class="screen"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="instruction" id="l2-instr"&gt;Cargando coordenadas...&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="map-bg" id="l2-map"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="map-landmark" style="top:20px; left:20px; width:100px; height:80px;"&gt;ZONA INDUSTRIAL&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="map-landmark" style="top:150px; left:250px; width:120px; height:100px; border-radius: 50%;"&gt;PARQUE CENTRAL&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="map-landmark" style="top:250px; left:450px; width:100px; height:60px;"&gt;CENTRO COMERCIAL&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="map-landmark" style="top:50px; left:400px; width:80px; height:80px;"&gt;PUERTO&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;!-- PANTALLA NIVEL 3: DESPACHO --&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div id="level-3" class="screen"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="incident-box" id="l3-incident"&gt;INCIDENTE: Accidente de tráfico con heridos. Distancia: 2km.&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="instruction"&gt;Selecciona la unidad más adecuada para este reporte:&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="dispatch-grid"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="unit-card" onclick="game.l3Check('patrol')"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;strong&gt;Patrulla&lt;/strong&gt;&lt;br&gt;&lt;small&gt;Orden Público&lt;/small&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="unit-card" onclick="game.l3Check('ambulance')"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;strong&gt;Ambulancia&lt;/strong&gt;&lt;br&gt;&lt;small&gt;Atención Médica&lt;/small&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="unit-card" onclick="game.l3Check('fire')"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;strong&gt;Bomberos&lt;/strong&gt;&lt;br&gt;&lt;small&gt;Fuego/Rescate&lt;/small&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;!-- PANTALLA NIVEL 4: VISIÓN --&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div id="level-4" class="screen"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="instruction" id="l4-instr"&gt;VISIÓN UNIFICADA: Monitorea las cámaras. ¡Detecta la anomalía roja y haz clic en ella!&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="camera-grid"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="camera-feed" data-id="01" onclick="game.l4Check(0)"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="cam-view" id="cam-0"&gt;🏙️&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="cam-status"&gt;ESTADO: OK&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="camera-feed" data-id="02" onclick="game.l4Check(1)"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="cam-view" id="cam-1"&gt;🏢&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="cam-status"&gt;ESTADO: OK&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="camera-feed" data-id="03" onclick="game.l4Check(2)"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="cam-view" id="cam-2"&gt;🌳&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="cam-status"&gt;ESTADO: OK&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="camera-feed" data-id="04" onclick="game.l4Check(3)"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="cam-view" id="cam-3"&gt;🚇&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="cam-status"&gt;ESTADO: OK&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div id="l4-counter" style="margin-top:20px;"&gt;Anomalías resueltas: 0 / 3&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;!-- PANTALLA NIVEL 5: REPORTE --&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div id="level-5" class="screen"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="instruction"&gt;REPORTE FINAL: Ordena los pasos del protocolo de emergencia.&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="sortable-list" id="l5-list"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;button class="btn" style="margin-top:20px;" onclick="game.l5Check()"&gt;Validar Protocolo&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;!-- GAME OVER --&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div id="game-over" class="screen"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;h2 class="result-title danger-text"&gt;MISIÓN FALLIDA&lt;/h2&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;p&gt;El sistema se ha colapsado o el tiempo se agotó.&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;button class="btn" onclick="location.reload()"&gt;Reintentar&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;!-- WIN SCREEN --&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div id="win-screen" class="screen"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;h2 class="result-title success-text"&gt;CIUDAD PROTEGIDA&lt;/h2&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;p class="victory-message"&gt;"Juntos salvamos vidas, misión cumplida"&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="stats"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;p&gt;Puntaje Final: &lt;span id="final-score"&gt;0&lt;/span&gt;&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;p&gt;Grado: &lt;span id="final-rank"&gt;Master&lt;/span&gt;&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;button class="btn" onclick="location.reload()"&gt;Nueva Misión&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div id="feedback"&gt;MENSAJE&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;script&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const game = {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>currentLevel: 0,</p>
-<p class="p1"><span class="Apple-converted-space">            </span>score: 0,</p>
-<p class="p1"><span class="Apple-converted-space">            </span>timeLeft: 60,</p>
-<p class="p1"><span class="Apple-converted-space">            </span>timer: null,</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>levels: [</p>
-<p class="p1"><span class="Apple-converted-space">                </span>{ id: "start-screen" },</p>
-<p class="p1"><span class="Apple-converted-space">                </span>{ id: "level-1" },</p>
-<p class="p1"><span class="Apple-converted-space">                </span>{ id: "level-2" },</p>
-<p class="p1"><span class="Apple-converted-space">                </span>{ id: "level-3" },</p>
-<p class="p1"><span class="Apple-converted-space">                </span>{ id: "level-4" },</p>
-<p class="p1"><span class="Apple-converted-space">                </span>{ id: "level-5" }</p>
-<p class="p1"><span class="Apple-converted-space">            </span>],</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>start() {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>this.score = 0;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>this.timeLeft = 80;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>this.nextLevel();</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('hud').style.display = 'flex';</p>
-<p class="p1"><span class="Apple-converted-space">                </span>this.startTimer();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>},</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>startTimer() {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if(this.timer) clearInterval(this.timer);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>this.timer = setInterval(() =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>this.timeLeft--;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>document.getElementById('hud-time').innerText = this.timeLeft;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>if (this.timeLeft &lt;= 0) this.gameOver();</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}, 1000);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>},</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>nextLevel() {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>this.currentLevel++;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (this.currentLevel &gt; 5) {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>this.win();</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>return;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.querySelectorAll('.screen').forEach(s =&gt; s.classList.remove('active'));</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById(this.levels[this.currentLevel].id).classList.add('active');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('hud-level').innerText = `${this.currentLevel} / 5`;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>this[`initLevel${this.currentLevel}`]();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>},</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>showFeedback(text, isSuccess) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const fb = document.getElementById('feedback');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>fb.innerText = text;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>fb.style.color = isSuccess ? 'var(--success)' : 'var(--danger)';</p>
-<p class="p1"><span class="Apple-converted-space">                </span>fb.classList.add('show-feedback');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>setTimeout(() =&gt; fb.classList.remove('show-feedback'), 1200);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>},</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>addScore(points) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>this.score += points;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('hud-score').innerText = String(this.score).padStart(4, '0');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>},</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>gameOver() {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>clearInterval(this.timer);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.querySelectorAll('.screen').forEach(s =&gt; s.classList.remove('active'));</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('game-over').classList.add('active');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>},</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>win() {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>clearInterval(this.timer);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.querySelectorAll('.screen').forEach(s =&gt; s.classList.remove('active'));</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('win-screen').classList.add('active');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('final-score').innerText = this.score;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>let rank = this.score &gt; 2000 ? "Maestro" : (this.score &gt; 1000 ? "Especialista" : "Novato");</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('final-rank').innerText = rank;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>},</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>// --- L1: FILTRO IA ---</p>
-<p class="p1"><span class="Apple-converted-space">            </span>l1Counter: 0,</p>
-<p class="p1"><span class="Apple-converted-space">            </span>initLevel1() {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const container = document.getElementById('l1-container');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>container.innerHTML = '';</p>
-<p class="p1"><span class="Apple-converted-space">                </span>this.l1Counter = 0;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>for (let i = 0; i &lt; 15; i++) this.createNode();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>},</p>
-<p class="p1"><span class="Apple-converted-space">            </span>createNode() {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const container = document.getElementById('l1-container');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const node = document.createElement('div');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>node.className = 'node';</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const isReal = Math.random() &gt; 0.4;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>node.style.backgroundColor = isReal ? 'var(--danger)' : 'var(--accent)';</p>
-<p class="p1"><span class="Apple-converted-space">                </span>node.style.left = Math.random() * 90 + '%';</p>
-<p class="p1"><span class="Apple-converted-space">                </span>node.style.top = Math.random() * 80 + '%';</p>
-<p class="p1"><span class="Apple-converted-space">                </span>node.onclick = () =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>if (isReal) {</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>this.l1Counter++;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>this.addScore(50);</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>this.showFeedback("+50: Real", true);</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>node.remove();</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>document.getElementById('l1-counter').innerText = `Procesados: ${this.l1Counter} / 10`;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>if (this.l1Counter &gt;= 10) this.nextLevel();</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>this.addScore(-30);</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>this.showFeedback("-30: Falsa", false);</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>node.remove();</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>this.createNode();</p>
-<p class="p1"><span class="Apple-converted-space">                </span>};</p>
-<p class="p1"><span class="Apple-converted-space">                </span>container.appendChild(node);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>},</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>// --- L2: GPS ---</p>
-<p class="p1"><span class="Apple-converted-space">            </span>l2Target: null,</p>
-<p class="p1"><span class="Apple-converted-space">            </span>initLevel2() {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const targets = [</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>{ name: "Incidente cerca del Parque Central", x: 310, y: 200 },</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>{ name: "Robo en Zona Industrial", x: 70, y: 60 },</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>{ name: "Fuga en el Puerto", x: 440, y: 90 }</p>
-<p class="p1"><span class="Apple-converted-space">                </span>];</p>
-<p class="p1"><span class="Apple-converted-space">                </span>this.l2Target = targets[Math.floor(Math.random() * targets.length)];</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('l2-instr').innerText = `MISIÓN: Haz clic en la ubicación del ${this.l2Target.name}`;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('l2-map').onclick = (e) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>const rect = e.currentTarget.getBoundingClientRect();</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>const x = e.clientX - rect.left;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>const y = e.clientY - rect.top;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>const dist = Math.sqrt(Math.pow(x - this.l2Target.x, 2) + Math.pow(y - this.l2Target.y, 2));</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>if (dist &lt; 60) {</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>this.addScore(200);</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>this.showFeedback("LOCALIZADO", true);</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>setTimeout(() =&gt; this.nextLevel(), 800);</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>this.addScore(-20);</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>this.showFeedback("COORDENADA INCORRECTA", false);</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">                </span>};</p>
-<p class="p1"><span class="Apple-converted-space">            </span>},</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>// --- L3: DESPACHO ---</p>
-<p class="p1"><span class="Apple-converted-space">            </span>l3CurrentIncident: null,</p>
-<p class="p1"><span class="Apple-converted-space">            </span>initLevel3() {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const incidents = [</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>{ desc: "INCIDENTE: Humo negro en edificio. Piso 10.", type: "fire" },</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>{ desc: "INCIDENTE: Persona herida en vía pública.", type: "ambulance" },</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>{ desc: "INCIDENTE: Robo en curso en banco.", type: "patrol" }</p>
-<p class="p1"><span class="Apple-converted-space">                </span>];</p>
-<p class="p1"><span class="Apple-converted-space">                </span>this.l3CurrentIncident = incidents[Math.floor(Math.random() * incidents.length)];</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('l3-incident').innerText = this.l3CurrentIncident.desc;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>},</p>
-<p class="p1"><span class="Apple-converted-space">            </span>l3Check(unitType) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (unitType === this.l3CurrentIncident.type) {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>this.addScore(200);</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>this.showFeedback("ASIGNACIÓN CORRECTA", true);</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>setTimeout(() =&gt; this.nextLevel(), 800);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>this.addScore(-100);</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>this.showFeedback("ERROR DE DESPACHO", false);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>},</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>// --- L4: VISIÓN ---</p>
-<p class="p1"><span class="Apple-converted-space">            </span>l4TargetIdx: -1,</p>
-<p class="p1"><span class="Apple-converted-space">            </span>l4Count: 0,</p>
-<p class="p1"><span class="Apple-converted-space">            </span>l4Timeout: null,</p>
-<p class="p1"><span class="Apple-converted-space">            </span>initLevel4() {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>this.l4Count = 0;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('l4-counter').innerText = `Anomalías resueltas: 0 / 3`;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>this.spawnAnomaly();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>},</p>
-<p class="p1"><span class="Apple-converted-space">            </span>spawnAnomaly() {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const feeds = document.querySelectorAll('.camera-feed');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>feeds.forEach(f =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>f.classList.remove('alert-active');</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>f.querySelector('.cam-status').innerText = "ESTADO: OK";</p>
-<p class="p1"><span class="Apple-converted-space">                </span>});</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">                </span>this.l4TargetIdx = Math.floor(Math.random() * 4);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const targetCam = feeds[this.l4TargetIdx];</p>
-<p class="p1"><span class="Apple-converted-space">                </span>targetCam.classList.add('alert-active');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>targetCam.querySelector('.cam-status').innerText = "ALERTA: ANOMALÍA";</p>
-<p class="p2"><span class="Apple-converted-space">                </span></p>
-<p class="p1"><span class="Apple-converted-space">                </span>clearTimeout(this.l4Timeout);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>this.l4Timeout = setTimeout(() =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>if (this.currentLevel === 4) this.spawnAnomaly();</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}, 3000);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>},</p>
-<p class="p1"><span class="Apple-converted-space">            </span>l4Check(idx) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (idx === this.l4TargetIdx) {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>this.l4Count++;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>this.addScore(150);</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>this.showFeedback("CAPTURADA", true);</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>document.getElementById('l4-counter').innerText = `Anomalías resueltas: ${this.l4Count} / 3`;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>if (this.l4Count &gt;= 3) {</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>clearTimeout(this.l4Timeout);</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>setTimeout(() =&gt; this.nextLevel(), 800);</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>this.spawnAnomaly();</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">                </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>this.addScore(-50);</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>this.showFeedback("ERROR", false);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>},</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>// --- L5: REPORTE ---</p>
-<p class="p1"><span class="Apple-converted-space">            </span>initLevel5() {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const correctOrder = ["Recibir Reporte", "Validar Ubicación", "Asignar Unidad", "Monitorear Escena", "Cerrar Incidente"];</p>
-<p class="p1"><span class="Apple-converted-space">                </span>let shuffled = [...correctOrder].sort(() =&gt; Math.random() - 0.5);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const list = document.getElementById('l5-list');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>list.innerHTML = '';</p>
-<p class="p1"><span class="Apple-converted-space">                </span>shuffled.forEach((text, index) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>const item = document.createElement('div');</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>item.className = 'sort-item';</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>item.draggable = true;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>item.innerHTML = `&lt;span&gt;${text}&lt;/span&gt; ↕️`;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>item.dataset.text = text;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>item.addEventListener('dragstart', (e) =&gt; e.dataTransfer.setData('text/plain', index));</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>item.addEventListener('dragover', (e) =&gt; e.preventDefault());</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>item.addEventListener('drop', (e) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>const fromIndex = e.dataTransfer.getData('text/plain');</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>const items = Array.from(list.children);</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>list.insertBefore(items[fromIndex], item);</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>});</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>list.appendChild(item);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>});</p>
-<p class="p1"><span class="Apple-converted-space">            </span>},</p>
-<p class="p1"><span class="Apple-converted-space">            </span>l5Check() {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const correctOrder = ["Recibir Reporte", "Validar Ubicación", "Asignar Unidad", "Monitorear Escena", "Cerrar Incidente"];</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const currentOrder = Array.from(document.getElementById('l5-list').children).map(i =&gt; i.dataset.text);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (currentOrder.every((val, i) =&gt; val === correctOrder[i])) {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>this.addScore(500);</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>this.showFeedback("CASO CERRADO", true);</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>setTimeout(() =&gt; this.nextLevel(), 1200);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>this.showFeedback("ORDEN INCORRECTO", false);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>};</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</p>
-<p class="p1">&lt;/body&gt;</p>
-<p class="p1">&lt;/html&gt;</p>
+
+    <div class="scanlines"></div>
+
+    <div id="game-container">
+        <!-- HUD -->
+        <div id="hud">
+            <div class="hud-item">
+                <span class="hud-label">Operador</span>
+                <span class="hud-value" id="hud-user">DESPACHADOR-01</span>
+            </div>
+            <div class="hud-item">
+                <span class="hud-label">Nivel</span>
+                <span class="hud-value" id="hud-level">1 / 5</span>
+            </div>
+            <div class="hud-item">
+                <span class="hud-label">Tiempo</span>
+                <span class="hud-value" id="hud-time">60</span>
+            </div>
+            <div class="hud-item">
+                <span class="hud-label">Puntaje</span>
+                <span class="hud-value" id="hud-score">0000</span>
+            </div>
+        </div>
+
+        <!-- PANTALLA INICIO -->
+        <div id="start-screen" class="screen active">
+            <h1>K-DISPATCH</h1>
+            <div class="signature">by kabat one</div>
+            <p class="subtitle">HÉROES DE LA CIUDAD</p>
+            <button class="btn" onclick="game.start()">Iniciar Misión</button>
+        </div>
+
+        <!-- PANTALLA NIVEL 1: FILTRO IA -->
+        <div id="level-1" class="screen">
+            <div class="instruction">FILTRO DE IA: Elimina las <span class="danger-text">Alertas Falsas</span> (Blancas) y procesa las <span class="danger-text">Emergencias Reales</span> (Rojas).</div>
+            <div class="node-container" id="l1-container"></div>
+            <div id="l1-counter" style="margin-top:10px;">Procesados: 0 / 10</div>
+        </div>
+
+        <!-- PANTALLA NIVEL 2: GPS -->
+        <div id="level-2" class="screen">
+            <div class="instruction" id="l2-instr">Cargando coordenadas...</div>
+            <div class="map-bg" id="l2-map">
+                <div class="map-landmark" style="top:20px; left:20px; width:100px; height:80px;">ZONA INDUSTRIAL</div>
+                <div class="map-landmark" style="top:150px; left:250px; width:120px; height:100px; border-radius: 50%;">PARQUE CENTRAL</div>
+                <div class="map-landmark" style="top:250px; left:450px; width:100px; height:60px;">CENTRO COMERCIAL</div>
+                <div class="map-landmark" style="top:50px; left:400px; width:80px; height:80px;">PUERTO</div>
+            </div>
+        </div>
+
+        <!-- PANTALLA NIVEL 3: DESPACHO -->
+        <div id="level-3" class="screen">
+            <div class="incident-box" id="l3-incident">INCIDENTE: Accidente de tráfico con heridos. Distancia: 2km.</div>
+            <div class="instruction">Selecciona la unidad más adecuada para este reporte:</div>
+            <div class="dispatch-grid">
+                <div class="unit-card" onclick="game.l3Check('patrol')">
+                    <strong>Patrulla</strong><br><small>Orden Público</small>
+                </div>
+                <div class="unit-card" onclick="game.l3Check('ambulance')">
+                    <strong>Ambulancia</strong><br><small>Atención Médica</small>
+                </div>
+                <div class="unit-card" onclick="game.l3Check('fire')">
+                    <strong>Bomberos</strong><br><small>Fuego/Rescate</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA NIVEL 4: VISIÓN -->
+        <div id="level-4" class="screen">
+            <div class="instruction" id="l4-instr">VISIÓN UNIFICADA: Monitorea las cámaras. ¡Detecta la anomalía roja y haz clic en ella!</div>
+            <div class="camera-grid">
+                <div class="camera-feed" data-id="01" onclick="game.l4Check(0)">
+                    <div class="cam-view" id="cam-0">🏙️</div>
+                    <div class="cam-status">ESTADO: OK</div>
+                </div>
+                <div class="camera-feed" data-id="02" onclick="game.l4Check(1)">
+                    <div class="cam-view" id="cam-1">🏢</div>
+                    <div class="cam-status">ESTADO: OK</div>
+                </div>
+                <div class="camera-feed" data-id="03" onclick="game.l4Check(2)">
+                    <div class="cam-view" id="cam-2">🌳</div>
+                    <div class="cam-status">ESTADO: OK</div>
+                </div>
+                <div class="camera-feed" data-id="04" onclick="game.l4Check(3)">
+                    <div class="cam-view" id="cam-3">🚇</div>
+                    <div class="cam-status">ESTADO: OK</div>
+                </div>
+            </div>
+            <div id="l4-counter" style="margin-top:20px;">Anomalías resueltas: 0 / 3</div>
+        </div>
+
+        <!-- PANTALLA NIVEL 5: REPORTE -->
+        <div id="level-5" class="screen">
+            <div class="instruction">REPORTE FINAL: Ordena los pasos del protocolo de emergencia.</div>
+            <div class="sortable-list" id="l5-list"></div>
+            <button class="btn" style="margin-top:20px;" onclick="game.l5Check()">Validar Protocolo</button>
+        </div>
+
+        <!-- GAME OVER -->
+        <div id="game-over" class="screen">
+            <h2 class="result-title danger-text">MISIÓN FALLIDA</h2>
+            <p>El sistema se ha colapsado o el tiempo se agotó.</p>
+            <button class="btn" onclick="location.reload()">Reintentar</button>
+        </div>
+
+        <!-- WIN SCREEN -->
+        <div id="win-screen" class="screen">
+            <h2 class="result-title success-text">CIUDAD PROTEGIDA</h2>
+            <p class="victory-message">"Juntos salvamos vidas, misión cumplida"</p>
+            <div class="stats">
+                <p>Puntaje Final: <span id="final-score">0</span></p>
+                <p>Grado: <span id="final-rank">Master</span></p>
+            </div>
+            <button class="btn" onclick="location.reload()">Nueva Misión</button>
+        </div>
+
+        <div id="feedback">MENSAJE</div>
+    </div>
+
+    <script>
+        const game = {
+            currentLevel: 0,
+            score: 0,
+            timeLeft: 60,
+            timer: null,
+
+            levels: [
+                { id: "start-screen" },
+                { id: "level-1" },
+                { id: "level-2" },
+                { id: "level-3" },
+                { id: "level-4" },
+                { id: "level-5" }
+            ],
+
+            start() {
+                this.score = 0;
+                this.timeLeft = 80;
+                this.nextLevel();
+                document.getElementById('hud').style.display = 'flex';
+                this.startTimer();
+            },
+
+            startTimer() {
+                if(this.timer) clearInterval(this.timer);
+                this.timer = setInterval(() => {
+                    this.timeLeft--;
+                    document.getElementById('hud-time').innerText = this.timeLeft;
+                    if (this.timeLeft <= 0) this.gameOver();
+                }, 1000);
+            },
+
+            nextLevel() {
+                this.currentLevel++;
+                if (this.currentLevel > 5) {
+                    this.win();
+                    return;
+                }
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById(this.levels[this.currentLevel].id).classList.add('active');
+                document.getElementById('hud-level').innerText = `${this.currentLevel} / 5`;
+                this[`initLevel${this.currentLevel}`]();
+            },
+
+            showFeedback(text, isSuccess) {
+                const fb = document.getElementById('feedback');
+                fb.innerText = text;
+                fb.style.color = isSuccess ? 'var(--success)' : 'var(--danger)';
+                fb.classList.add('show-feedback');
+                setTimeout(() => fb.classList.remove('show-feedback'), 1200);
+            },
+
+            addScore(points) {
+                this.score += points;
+                document.getElementById('hud-score').innerText = String(this.score).padStart(4, '0');
+            },
+
+            gameOver() {
+                clearInterval(this.timer);
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById('game-over').classList.add('active');
+            },
+
+            win() {
+                clearInterval(this.timer);
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById('win-screen').classList.add('active');
+                document.getElementById('final-score').innerText = this.score;
+                let rank = this.score > 2000 ? "Maestro" : (this.score > 1000 ? "Especialista" : "Novato");
+                document.getElementById('final-rank').innerText = rank;
+            },
+
+            // --- L1: FILTRO IA ---
+            l1Counter: 0,
+            initLevel1() {
+                const container = document.getElementById('l1-container');
+                container.innerHTML = '';
+                this.l1Counter = 0;
+                for (let i = 0; i < 15; i++) this.createNode();
+            },
+            createNode() {
+                const container = document.getElementById('l1-container');
+                const node = document.createElement('div');
+                node.className = 'node';
+                const isReal = Math.random() > 0.4;
+                node.style.backgroundColor = isReal ? 'var(--danger)' : 'var(--accent)';
+                node.style.left = Math.random() * 90 + '%';
+                node.style.top = Math.random() * 80 + '%';
+                node.onclick = () => {
+                    if (isReal) {
+                        this.l1Counter++;
+                        this.addScore(50);
+                        this.showFeedback("+50: Real", true);
+                        node.remove();
+                        document.getElementById('l1-counter').innerText = `Procesados: ${this.l1Counter} / 10`;
+                        if (this.l1Counter >= 10) this.nextLevel();
+                    } else {
+                        this.addScore(-30);
+                        this.showFeedback("-30: Falsa", false);
+                        node.remove();
+                    }
+                    this.createNode();
+                };
+                container.appendChild(node);
+            },
+
+            // --- L2: GPS ---
+            l2Target: null,
+            initLevel2() {
+                const targets = [
+                    { name: "Incidente cerca del Parque Central", x: 310, y: 200 },
+                    { name: "Robo en Zona Industrial", x: 70, y: 60 },
+                    { name: "Fuga en el Puerto", x: 440, y: 90 }
+                ];
+                this.l2Target = targets[Math.floor(Math.random() * targets.length)];
+                document.getElementById('l2-instr').innerText = `MISIÓN: Haz clic en la ubicación del ${this.l2Target.name}`;
+                document.getElementById('l2-map').onclick = (e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const dist = Math.sqrt(Math.pow(x - this.l2Target.x, 2) + Math.pow(y - this.l2Target.y, 2));
+                    if (dist < 60) {
+                        this.addScore(200);
+                        this.showFeedback("LOCALIZADO", true);
+                        setTimeout(() => this.nextLevel(), 800);
+                    } else {
+                        this.addScore(-20);
+                        this.showFeedback("COORDENADA INCORRECTA", false);
+                    }
+                };
+            },
+
+            // --- L3: DESPACHO ---
+            l3CurrentIncident: null,
+            initLevel3() {
+                const incidents = [
+                    { desc: "INCIDENTE: Humo negro en edificio. Piso 10.", type: "fire" },
+                    { desc: "INCIDENTE: Persona herida en vía pública.", type: "ambulance" },
+                    { desc: "INCIDENTE: Robo en curso en banco.", type: "patrol" }
+                ];
+                this.l3CurrentIncident = incidents[Math.floor(Math.random() * incidents.length)];
+                document.getElementById('l3-incident').innerText = this.l3CurrentIncident.desc;
+            },
+            l3Check(unitType) {
+                if (unitType === this.l3CurrentIncident.type) {
+                    this.addScore(200);
+                    this.showFeedback("ASIGNACIÓN CORRECTA", true);
+                    setTimeout(() => this.nextLevel(), 800);
+                } else {
+                    this.addScore(-100);
+                    this.showFeedback("ERROR DE DESPACHO", false);
+                }
+            },
+
+            // --- L4: VISIÓN ---
+            l4TargetIdx: -1,
+            l4Count: 0,
+            l4Timeout: null,
+            initLevel4() {
+                this.l4Count = 0;
+                document.getElementById('l4-counter').innerText = `Anomalías resueltas: 0 / 3`;
+                this.spawnAnomaly();
+            },
+            spawnAnomaly() {
+                const feeds = document.querySelectorAll('.camera-feed');
+                feeds.forEach(f => {
+                    f.classList.remove('alert-active');
+                    f.querySelector('.cam-status').innerText = "ESTADO: OK";
+                });
+
+                this.l4TargetIdx = Math.floor(Math.random() * 4);
+                const targetCam = feeds[this.l4TargetIdx];
+                targetCam.classList.add('alert-active');
+                targetCam.querySelector('.cam-status').innerText = "ALERTA: ANOMALÍA";
+                
+                clearTimeout(this.l4Timeout);
+                this.l4Timeout = setTimeout(() => {
+                    if (this.currentLevel === 4) this.spawnAnomaly();
+                }, 3000);
+            },
+            l4Check(idx) {
+                if (idx === this.l4TargetIdx) {
+                    this.l4Count++;
+                    this.addScore(150);
+                    this.showFeedback("CAPTURADA", true);
+                    document.getElementById('l4-counter').innerText = `Anomalías resueltas: ${this.l4Count} / 3`;
+                    if (this.l4Count >= 3) {
+                        clearTimeout(this.l4Timeout);
+                        setTimeout(() => this.nextLevel(), 800);
+                    } else {
+                        this.spawnAnomaly();
+                    }
+                } else {
+                    this.addScore(-50);
+                    this.showFeedback("ERROR", false);
+                }
+            },
+
+            // --- L5: REPORTE ---
+            initLevel5() {
+                const correctOrder = ["Recibir Reporte", "Validar Ubicación", "Asignar Unidad", "Monitorear Escena", "Cerrar Incidente"];
+                let shuffled = [...correctOrder].sort(() => Math.random() - 0.5);
+                const list = document.getElementById('l5-list');
+                list.innerHTML = '';
+                shuffled.forEach((text, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'sort-item';
+                    item.draggable = true;
+                    item.innerHTML = `<span>${text}</span> ↕️`;
+                    item.dataset.text = text;
+                    item.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/plain', index));
+                    item.addEventListener('dragover', (e) => e.preventDefault());
+                    item.addEventListener('drop', (e) => {
+                        const fromIndex = e.dataTransfer.getData('text/plain');
+                        const items = Array.from(list.children);
+                        list.insertBefore(items[fromIndex], item);
+                    });
+                    list.appendChild(item);
+                });
+            },
+            l5Check() {
+                const correctOrder = ["Recibir Reporte", "Validar Ubicación", "Asignar Unidad", "Monitorear Escena", "Cerrar Incidente"];
+                const currentOrder = Array.from(document.getElementById('l5-list').children).map(i => i.dataset.text);
+                if (currentOrder.every((val, i) => val === correctOrder[i])) {
+                    this.addScore(500);
+                    this.showFeedback("CASO CERRADO", true);
+                    setTimeout(() => this.nextLevel(), 1200);
+                } else {
+                    this.showFeedback("ORDEN INCORRECTO", false);
+                }
+            }
+        };
+    </script>
 </body>
 </html>
