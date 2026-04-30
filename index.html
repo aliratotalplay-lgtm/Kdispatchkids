@@ -12,7 +12,7 @@
             --accent: #ffffff;
             --danger: #ff4d4d;
             --success: #00ff88;
-            --panel-bg: rgba(0, 40, 80, 0.8);
+            --panel-bg: rgba(0, 40, 80, 0.95);
             --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
@@ -33,15 +33,13 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            min-height: -webkit-fill-available;
         }
 
         .scanlines {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-            background-size: 100% 3px, 2px 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 4px;
             pointer-events: none;
             z-index: 100;
         }
@@ -49,47 +47,32 @@
         #game-container {
             width: 95vw;
             max-width: 900px;
-            height: 90vh;
-            max-height: 700px;
+            height: 92vh;
+            max-height: 780px;
             background: var(--panel-bg);
             border: 2px solid var(--primary);
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.2);
             position: relative;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            border-radius: 8px;
+            border-radius: 12px;
         }
 
-        /* --- HUD RESPONSIVO --- */
+        /* --- HUD --- */
         #hud {
             display: none;
             justify-content: space-between;
-            padding: 10px;
-            background: rgba(0, 20, 40, 0.95);
-            border-bottom: 1px solid var(--primary);
-            font-family: monospace;
+            padding: 12px 20px;
+            background: #001a33;
+            border-bottom: 2px solid var(--primary);
+            font-family: 'Courier New', Courier, monospace;
             z-index: 10;
-            flex-wrap: wrap;
-            gap: 5px;
         }
 
-        .hud-item {
-            display: flex;
-            flex-direction: column;
-            min-width: 70px;
-        }
-
-        .hud-label {
-            font-size: 0.6rem;
-            color: var(--primary);
-            text-transform: uppercase;
-        }
-
-        .hud-value {
-            font-size: 0.9rem;
-            font-weight: bold;
-        }
+        .hud-item { display: flex; flex-direction: column; }
+        .hud-label { font-size: 0.7rem; color: var(--primary); opacity: 0.8; }
+        .hud-value { font-size: 1.2rem; font-weight: bold; color: #fff; }
 
         /* --- SCREENS --- */
         .screen {
@@ -98,188 +81,116 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 15px;
+            padding: 20px;
             position: relative;
             text-align: center;
-            overflow-y: auto;
         }
 
-        .screen.active {
-            display: flex;
-        }
+        .screen.active { display: flex; }
 
-        /* --- START SCREEN --- */
-        h1 {
-            font-size: clamp(2rem, 8vw, 3.5rem);
-            margin: 0;
-            color: var(--danger);
-            text-shadow: 0 0 15px var(--danger);
-            letter-spacing: 4px;
-        }
-
-        .signature {
-            font-size: 0.9rem;
-            color: var(--secondary);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .subtitle {
-            margin-bottom: 30px;
-            color: #ccc;
-            font-size: 0.8rem;
+        /* --- UI ELEMENTS --- */
+        h1 { font-size: 3rem; color: var(--danger); text-shadow: 0 0 20px var(--danger); margin: 0; letter-spacing: 5px; }
+        .instruction-box {
+            background: rgba(0, 212, 255, 0.15);
+            border: 1px solid var(--primary);
+            padding: 12px;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+            width: 100%;
+            border-radius: 4px;
+            color: #e0f7ff;
         }
 
         .btn {
-            padding: 12px 30px;
+            padding: 18px 40px;
+            background: var(--primary);
+            border: none;
+            color: #000;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #0088cc;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+        }
+
+        .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #0088cc; }
+        
+        .btn-outline {
             background: transparent;
             border: 2px solid var(--primary);
             color: var(--primary);
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            border-radius: 4px;
+            box-shadow: none;
         }
 
-        .btn:active {
-            background: var(--primary);
-            color: var(--bg-color);
-        }
+        /* L1: Nodos */
+        .node-container { width: 100%; height: 320px; position: relative; background: radial-gradient(circle, #0a1f35 0%, #050a1a 100%); border-radius: 8px; border: 1px solid var(--primary); overflow: hidden; }
+        .node { position: absolute; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.1s; border: 3px solid rgba(255,255,255,0.3); }
+        .node-red { background: var(--danger); box-shadow: 0 0 20px var(--danger); }
+        .node-white { background: #fff; box-shadow: 0 0 10px #fff; }
 
-        /* --- MECÁNICAS ADAPTADAS --- */
-        .instruction {
-            margin-bottom: 15px;
-            font-size: 1rem;
-            line-height: 1.3;
-        }
-
-        /* L1: Nodos más grandes para dedos */
-        .node-container {
-            width: 100%;
-            height: 60%;
-            position: relative;
-            background: rgba(255,255,255,0.02);
-            border-radius: 8px;
-        }
-
-        .node {
-            position: absolute;
-            width: 50px; /* Tamaño táctil */
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* L2: Mapa fluido */
-        .map-bg {
-            width: 100%;
-            aspect-ratio: 16/9;
-            background: #0a1a2a;
-            border: 1px solid var(--primary);
-            position: relative;
-            background-image: linear-gradient(rgba(0, 212, 255, 0.05) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(0, 212, 255, 0.05) 1px, transparent 1px);
-            background-size: 20px 20px;
-        }
-
-        .map-landmark {
-            position: absolute;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            font-size: 0.6rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* L3: Grid adaptable */
-        .dispatch-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 10px;
-            width: 100%;
-        }
-
-        .unit-card {
-            padding: 12px;
-            border: 1px solid var(--secondary);
-            background: rgba(0, 85, 255, 0.1);
-            border-radius: 4px;
-        }
-
-        /* L4: Cámaras responsivas */
-        .camera-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            width: 100%;
-        }
-
+        /* L4: Cámaras con escenas */
+        .camera-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; }
         .camera-feed {
-            aspect-ratio: 4/3;
+            aspect-ratio: 16/9;
             background: #000;
-            border: 2px solid #333;
+            border: 2px solid #334455;
             position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            overflow: hidden;
             border-radius: 4px;
         }
-
-        .camera-feed.alert-active { border-color: var(--danger); }
-
-        /* L5: Lista de ordenación táctil */
-        .sortable-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            width: 100%;
-            max-width: 300px;
+        .feed-static {
+            position: absolute; width: 100%; height: 100%;
+            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyBAMAAADsEZWCAAAAGFBMVEVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVF7mSDAAAACHRSTlMA9On09Pf396FmG9AAAAA5SURBVDjLY2AYBaNgFIyCUUAbYBgYGKIDGEYBBoYMBgYGBgYGBmYIgwGBAUIGBghpIBggZIDQAEYBAPsOAgX79p8XAAAAAElFTkSuQmCC');
+            opacity: 0.1;
         }
+        .feed-content { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #22ddff; font-family: monospace; font-size: 0.7rem; }
+        .feed-alert { display: none; color: var(--danger); font-weight: bold; font-size: 1.5rem; animation: blink 0.5s infinite; }
+        .camera-feed.alert-active { border-color: var(--danger); box-shadow: inset 0 0 20px rgba(255,0,0,0.4); }
+        .camera-feed.alert-active .feed-alert { display: block; }
+        .camera-feed.alert-active .feed-normal { display: none; }
 
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* L5: Protocolo con flechas */
+        .sortable-list { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 12px; }
         .sort-item {
-            padding: 10px;
-            background: rgba(0, 212, 255, 0.1);
-            border: 1px solid var(--primary);
+            padding: 15px;
+            background: #0a1f35;
+            border: 1.5px solid var(--secondary);
+            border-radius: 8px;
             display: flex;
             justify-content: space-between;
-            font-size: 0.9rem;
-            border-radius: 4px;
+            align-items: center;
+        }
+        .controls { display: flex; gap: 10px; }
+        .arrow-btn { 
+            background: rgba(0, 212, 255, 0.2); 
+            border: 1px solid var(--primary); 
+            color: var(--primary); 
+            width: 40px; height: 40px; 
+            border-radius: 4px; 
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
         }
 
-        /* FEEDBACK & FIN */
+        /* Feedback */
         #feedback {
             position: absolute;
-            bottom: 20%;
-            font-weight: bold;
-            font-size: 1.2rem;
-            pointer-events: none;
-            opacity: 0;
-            z-index: 200;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 2.2rem; font-weight: bold; z-index: 1000;
+            pointer-events: none; opacity: 0; transition: opacity 0.3s;
+            text-shadow: 2px 2px 5px #000;
         }
-
-        .web-link {
-            color: var(--primary);
-            text-decoration: none;
-            margin-bottom: 15px;
-            font-size: 0.9rem;
-        }
-
         .show-feedback { opacity: 1 !important; }
-        .success-text { color: var(--success); }
-        .danger-text { color: var(--danger); }
 
         @media (max-width: 480px) {
             h1 { font-size: 2.2rem; }
-            .btn { width: 100%; }
             .camera-grid { grid-template-columns: 1fr; }
-            #game-container { height: 95vh; }
+            .node-container { height: 260px; }
         }
     </style>
 </head>
@@ -289,69 +200,117 @@
 
     <div id="game-container">
         <div id="hud">
-            <div class="hud-item"><span class="hud-label">Niv</span><span class="hud-value" id="hud-level">1/5</span></div>
-            <div class="hud-item"><span class="hud-label">Tiempo</span><span class="hud-value" id="hud-time">80</span></div>
-            <div class="hud-item"><span class="hud-label">Puntos</span><span class="hud-value" id="hud-score">0000</span></div>
+            <div class="hud-item"><span class="hud-label">SISTEMA</span><span class="hud-value" id="hud-level">1/5</span></div>
+            <div class="hud-item"><span class="hud-label">TIEMPO</span><span class="hud-value" id="hud-time">80</span></div>
+            <div class="hud-item"><span class="hud-label">SCORE</span><span class="hud-value" id="hud-score">0000</span></div>
         </div>
 
+        <!-- Inicio -->
         <div id="start-screen" class="screen active">
+            <div style="margin-bottom: 20px;">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="var(--danger)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            </div>
             <h1>K-DISPATCH</h1>
-            <div class="signature">by kabat one</div>
-            <p class="subtitle">HÉROES DE LA CIUDAD</p>
-            <button class="btn" onclick="game.start()">Iniciar Misión</button>
+            <p style="color: var(--primary); letter-spacing: 2px;">KABAT ONE EMERGENCY SYSTEMS</p>
+            <button class="btn" onclick="game.start()">Acceder al Sistema</button>
         </div>
 
+        <!-- Nivel 1 -->
         <div id="level-1" class="screen">
-            <div class="instruction">Toca los <span class="danger-text">Nodos Rojos</span> (Emergencias). Evita los blancos.</div>
+            <div class="instruction-box">
+                <strong>ATENCIÓN:</strong> Despeja el panel tocando los 8 <span style="color:var(--danger); font-weight:bold;">NODOS ROJOS</span>. ¡Ignora los blancos!
+            </div>
             <div class="node-container" id="l1-container"></div>
-            <div id="l1-counter">Procesados: 0 / 8</div>
         </div>
 
+        <!-- Nivel 2 -->
         <div id="level-2" class="screen">
-            <div class="instruction" id="l2-instr">Cargando GPS...</div>
-            <div class="map-bg" id="l2-map">
-                <div class="map-landmark" style="top:10%; left:10%; width:20%; height:15%;">IND.</div>
-                <div class="map-landmark" style="top:40%; left:40%; width:25%; height:20%; border-radius:50%;">PARQUE</div>
-                <div class="map-landmark" style="top:70%; left:60%; width:30%; height:15%;">CC</div>
+            <div class="instruction-box">
+                <strong>GEOLOCALIZACIÓN:</strong> Selecciona la zona solicitada en el mapa táctico.
+            </div>
+            <h2 id="l2-target-name" style="color: var(--primary); margin: 0 0 15px 0; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 20px;">BUSCANDO...</h2>
+            <div class="map-bg" id="l2-map" style="width:100%; aspect-ratio:16/9; position:relative; background:#071624; border:2px solid var(--primary); border-radius:8px;">
+                <div onclick="game.l2Check('INDUSTRIAL')" style="position:absolute; top:10%; left:10%; width:30%; height:25%; border:1px dashed #334455; display:flex; align-items:center; justify-content:center; color:#334455;">ZONA INDUSTRIAL</div>
+                <div onclick="game.l2Check('PARQUE')" style="position:absolute; top:40%; left:45%; width:20%; height:20%; border:1px dashed #334455; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#334455;">PARQUE</div>
+                <div onclick="game.l2Check('MALL')" style="position:absolute; top:70%; left:60%; width:35%; height:20%; border:1px dashed #334455; display:flex; align-items:center; justify-content:center; color:#334455;">CENTRO COMERCIAL</div>
             </div>
         </div>
 
+        <!-- Nivel 3 -->
         <div id="level-3" class="screen">
-            <div class="incident-box" id="l3-incident" style="background:rgba(255,0,0,0.2); padding:10px; margin-bottom:10px; width:100%;">ALERTA</div>
+            <div class="instruction-box">
+                <strong>DESPACHO:</strong> Elige el recurso adecuado para el tipo de incidente reportado.
+            </div>
+            <div id="l3-incident" style="background:#440000; border:2px solid var(--danger); padding:20px; margin-bottom:20px; width:100%; font-size: 1.2rem; font-weight:bold; color: #fff;">---</div>
             <div class="dispatch-grid">
-                <div class="unit-card" onclick="game.l3Check('patrol')">🚓 Patrulla</div>
-                <div class="unit-card" onclick="game.l3Check('ambulance')">🚑 Ambulancia</div>
-                <div class="unit-card" onclick="game.l3Check('fire')">🚒 Bomberos</div>
+                <div class="unit-card" onclick="game.l3Check('patrol')" style="padding:15px; background:rgba(255,255,255,0.05); border:1px solid var(--primary); margin-bottom:10px; border-radius:8px;">🚓 POLICÍA</div>
+                <div class="unit-card" onclick="game.l3Check('ambulance')" style="padding:15px; background:rgba(255,255,255,0.05); border:1px solid var(--primary); margin-bottom:10px; border-radius:8px;">🚑 AMBULANCIA</div>
+                <div class="unit-card" onclick="game.l3Check('fire')" style="padding:15px; background:rgba(255,255,255,0.05); border:1px solid var(--primary); margin-bottom:10px; border-radius:8px;">🚒 BOMBEROS</div>
             </div>
         </div>
 
+        <!-- Nivel 4 -->
         <div id="level-4" class="screen">
-            <div class="instruction">Toca la cámara con la anomalía roja.</div>
-            <div class="camera-grid">
-                <div class="camera-feed" onclick="game.l4Check(0)" id="cam-0">CAM 1</div>
-                <div class="camera-feed" onclick="game.l4Check(1)" id="cam-1">CAM 2</div>
-                <div class="camera-feed" onclick="game.l4Check(2)" id="cam-2">CAM 3</div>
-                <div class="camera-feed" onclick="game.l4Check(3)" id="cam-3">CAM 4</div>
+            <div class="instruction-box">
+                <strong>VIGILANCIA:</strong> Toca la cámara que muestre la señal de <span style="color:var(--danger); font-weight:bold;">ALERT</span>.
             </div>
-            <div id="l4-counter" style="margin-top:10px;">0 / 3</div>
+            <div class="camera-grid">
+                <div class="camera-feed" onclick="game.l4Check(0)" id="cam-0">
+                    <div class="feed-static"></div>
+                    <div class="feed-content">
+                        <span class="feed-normal">CAM_01 // STANDBY<br>SCANNING...</span>
+                        <span class="feed-alert">! ALERT !</span>
+                    </div>
+                </div>
+                <div class="camera-feed" onclick="game.l4Check(1)" id="cam-1">
+                    <div class="feed-static"></div>
+                    <div class="feed-content">
+                        <span class="feed-normal">CAM_02 // STANDBY<br>SCANNING...</span>
+                        <span class="feed-alert">! ALERT !</span>
+                    </div>
+                </div>
+                <div class="camera-feed" onclick="game.l4Check(2)" id="cam-2">
+                    <div class="feed-static"></div>
+                    <div class="feed-content">
+                        <span class="feed-normal">CAM_03 // STANDBY<br>SCANNING...</span>
+                        <span class="feed-alert">! ALERT !</span>
+                    </div>
+                </div>
+                <div class="camera-feed" onclick="game.l4Check(3)" id="cam-3">
+                    <div class="feed-static"></div>
+                    <div class="feed-content">
+                        <span class="feed-normal">CAM_04 // STANDBY<br>SCANNING...</span>
+                        <span class="feed-alert">! ALERT !</span>
+                    </div>
+                </div>
+            </div>
+            <div id="l4-counter" style="margin-top:15px; font-weight:bold; color:var(--primary);">ANOMALÍAS DETECTADAS: 0 / 3</div>
         </div>
 
+        <!-- Nivel 5 -->
         <div id="level-5" class="screen">
-            <div class="instruction">Ordena el protocolo táctico:</div>
+            <div class="instruction-box">
+                <strong>ORDENAR PROTOCOLO:</strong> Usa las flechas (▲ ▼) para ordenar los pasos correctamente: <br>
+                <small>1. Recibir ➔ 2. Ubicar ➔ 3. Despachar ➔ 4. Cerrar</small>
+            </div>
             <div class="sortable-list" id="l5-list"></div>
-            <button class="btn" style="margin-top:15px;" onclick="game.l5Check()">Validar</button>
+            <button class="btn" style="margin-top:20px; width:100%;" onclick="game.l5Check()">Verificar Protocolo</button>
         </div>
 
         <div id="game-over" class="screen">
-            <h2 class="danger-text">SISTEMA OFFLINE</h2>
-            <button class="btn" onclick="location.reload()">Reiniciar</button>
+            <h1 style="font-size: 2.5rem;">SISTEMA CAÍDO</h1>
+            <p>Se ha perdido el control de la ciudad.</p>
+            <button class="btn" onclick="location.reload()">Reiniciar Terminal</button>
         </div>
 
         <div id="win-screen" class="screen">
-            <h2 class="success-text">CIUDAD PROTEGIDA</h2>
-            <a href="https://www.kabat.com" target="_blank" class="web-link">Conoce más en www.kabat.com</a>
-            <div id="final-score" style="font-size: 1.5rem; margin-bottom: 20px;">0000</div>
-            <button class="btn" onclick="location.reload()">Nueva Misión</button>
+            <h1 style="color:var(--success); text-shadow: 0 0 20px var(--success);">CIUDAD SEGURA</h1>
+            <div id="final-score" style="font-size: 2.5rem; margin: 10px 0;">0000</div>
+            <p>Operación Kabat One completada con éxito.</p>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                <button class="btn" onclick="location.reload()">Nueva Misión</button>
+                <a href="https://www.kabatone.com" target="_blank" class="btn btn-outline">conoce más en www.kabatone.com</a>
+            </div>
         </div>
 
         <div id="feedback">MENSAJE</div>
@@ -365,7 +324,6 @@
             timer: null,
 
             start() {
-                this.score = 0;
                 document.getElementById('hud').style.display = 'flex';
                 this.nextLevel();
                 this.startTimer();
@@ -411,114 +369,163 @@
                 clearInterval(this.timer);
                 document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
                 document.getElementById('win-screen').classList.add('active');
-                document.getElementById('final-score').innerText = `Puntaje: ${this.score}`;
+                document.getElementById('final-score').innerText = `SCORE: ${this.score}`;
             },
 
-            // L1 Logic
+            // L1 - Nodos (8 rojos al inicio)
             l1Count: 0,
             initL1() {
                 const c = document.getElementById('l1-container');
                 c.innerHTML = '';
-                for(let i=0; i<8; i++) this.spawnNode();
+                this.l1Count = 0;
+                
+                // Generar 8 rojos obligatorios
+                for(let i=0; i<8; i++) this.createNode(true);
+                // Generar 5 blancos distracción
+                for(let i=0; i<5; i++) this.createNode(false);
             },
-            spawnNode() {
+            createNode(isRed) {
                 const c = document.getElementById('l1-container');
                 const n = document.createElement('div');
-                n.className = 'node';
-                const isR = Math.random() > 0.4;
-                n.style.background = isR ? 'var(--danger)' : '#fff';
-                n.style.left = Math.random()*80 + '%';
-                n.style.top = Math.random()*80 + '%';
+                n.className = `node ${isRed ? 'node-red' : 'node-white'}`;
+                n.style.left = (Math.random() * 80 + 5) + '%';
+                n.style.top = (Math.random() * 80 + 5) + '%';
                 n.onclick = () => {
-                    if(isR) {
+                    if(isRed) {
                         this.l1Count++;
                         this.addScore(50);
-                        document.getElementById('l1-counter').innerText = `Procesados: ${this.l1Count}/8`;
-                        n.remove();
-                        if(this.l1Count >= 8) this.nextLevel();
-                        else this.spawnNode();
+                        n.style.transform = 'scale(0)';
+                        setTimeout(() => n.remove(), 100);
+                        if(this.l1Count >= 8) {
+                            this.showFeedback("PANEL DESPEJADO", true);
+                            setTimeout(() => this.nextLevel(), 500);
+                        }
                     } else {
-                        this.addScore(-20);
-                        this.showFeedback("FALSA ALARMA", false);
-                        n.remove();
-                        this.spawnNode();
+                        this.addScore(-25);
+                        this.showFeedback("ERROR: NODO NO CRÍTICO", false);
                     }
                 };
                 c.appendChild(n);
             },
 
-            // L2 Logic
-            l2Target: null,
+            // L2 - Mapa
+            l2Target: '',
             initL2() {
-                const ts = [{n:"PARQUE",x:50,y:50}, {n:"ZONA IND.",x:20,y:17}, {n:"CC",x:75,y:77}];
-                this.l2Target = ts[Math.floor(Math.random()*ts.length)];
-                document.getElementById('l2-instr').innerText = `UBICA: ${this.l2Target.n}`;
-                document.getElementById('l2-map').onclick = (e) => {
-                    const r = e.currentTarget.getBoundingClientRect();
-                    const px = ((e.clientX - r.left)/r.width)*100;
-                    const py = ((e.clientY - r.top)/r.height)*100;
-                    const d = Math.sqrt(Math.pow(px-this.l2Target.x,2) + Math.pow(py-this.l2Target.y,2));
-                    if(d < 15) { this.addScore(100); this.nextLevel(); }
-                    else { this.addScore(-10); this.showFeedback("FUERA DE RANGO", false); }
-                };
+                const ts = [
+                    {k:'INDUSTRIAL', n:'ZONA INDUSTRIAL'},
+                    {k:'PARQUE', n:'PARQUE CENTRAL'},
+                    {k:'MALL', n:'CENTRO COMERCIAL'}
+                ];
+                const t = ts[Math.floor(Math.random()*ts.length)];
+                this.l2Target = t.k;
+                document.getElementById('l2-target-name').innerText = `UBICA: ${t.n}`;
             },
-
-            // L3 Logic
-            l3Type: '',
-            initL3() {
-                const ins = [{d:"FUEGO EN AZOTEA", t:"fire"}, {d:"PACIENTE INCONSCIENTE", t:"ambulance"}, {d:"ROBO EN TIENDA", t:"patrol"}];
-                const i = ins[Math.floor(Math.random()*ins.length)];
-                this.l3Type = i.t;
-                document.getElementById('l3-incident').innerText = i.d;
-            },
-            l3Check(t) {
-                if(t === this.l3Type) { this.addScore(100); this.nextLevel(); }
-                else { this.addScore(-50); this.showFeedback("UNIDAD ERRÓNEA", false); }
-            },
-
-            // L4 Logic
-            l4T: 0, l4C: 0,
-            initL4() {
-                this.l4C = 0;
-                this.loopL4();
-            },
-            loopL4() {
-                document.querySelectorAll('.camera-feed').forEach(f => f.classList.remove('alert-active'));
-                this.l4T = Math.floor(Math.random()*4);
-                document.getElementById(`cam-${this.l4T}`).classList.add('alert-active');
-            },
-            l4Check(i) {
-                if(i === this.l4T) {
-                    this.l4C++;
-                    this.addScore(50);
-                    document.getElementById('l4-counter').innerText = `${this.l4C} / 3`;
-                    if(this.l4C >= 3) this.nextLevel();
-                    else this.loopL4();
+            l2Check(k) {
+                if(k === this.l2Target) {
+                    this.addScore(100);
+                    this.showFeedback("LOCALIZADO", true);
+                    this.nextLevel();
                 } else {
                     this.addScore(-20);
+                    this.showFeedback("UBICACIÓN FALLIDA", false);
                 }
             },
 
-            // L5 Logic
+            // L3 - Despacho
+            l3Type: '',
+            initL3() {
+                const sc = [
+                    {d:"TIROTEO EN PROGRESO", t:"patrol"},
+                    {d:"INCENDIO ESTRUCTURAL", t:"fire"},
+                    {d:"ATENCIÓN PARTO", t:"ambulance"}
+                ];
+                const s = sc[Math.floor(Math.random()*sc.length)];
+                this.l3Type = s.t;
+                document.getElementById('l3-incident').innerText = s.d;
+            },
+            l3Check(t) {
+                if(t === this.l3Type) {
+                    this.addScore(100);
+                    this.nextLevel();
+                } else {
+                    this.addScore(-50);
+                    this.showFeedback("DESPACHO ERRÓNEO", false);
+                    this.initL3();
+                }
+            },
+
+            // L4 - Cámaras con escenas
+            l4Target: 0, l4Count: 0,
+            initL4() {
+                this.l4Count = 0;
+                this.loopL4();
+            },
+            loopL4() {
+                document.querySelectorAll('.camera-feed').forEach(c => c.classList.remove('alert-active'));
+                this.l4Target = Math.floor(Math.random()*4);
+                document.getElementById(`cam-${this.l4Target}`).classList.add('alert-active');
+            },
+            l4Check(idx) {
+                if(idx === this.l4Target) {
+                    this.l4Count++;
+                    this.addScore(50);
+                    document.getElementById('l4-counter').innerText = `ANOMALÍAS DETECTADAS: ${this.l4Count} / 3`;
+                    if(this.l4Count >= 3) {
+                        this.showFeedback("SEGURIDAD RESTAURADA", true);
+                        this.nextLevel();
+                    } else {
+                        this.loopL4();
+                    }
+                } else {
+                    this.addScore(-10);
+                }
+            },
+
+            // L5 - Protocolo con flechas
             initL5() {
-                const order = ["Recibir", "Ubicar", "Despachar", "Cerrar"];
-                let s = [...order].sort(() => Math.random()-0.5);
-                const l = document.getElementById('l5-list');
-                l.innerHTML = '';
-                s.forEach(t => {
-                    const d = document.createElement('div');
-                    d.className = 'sort-item';
-                    d.innerHTML = `<span>${t}</span> <span>☰</span>`;
-                    d.onclick = () => { l.appendChild(d); }; // Simple tap to move to end for mobile
-                    d.dataset.v = t;
-                    l.appendChild(d);
+                const steps = ["Recibir", "Ubicar", "Despachar", "Cerrar"];
+                let shuffled = [...steps].sort(() => Math.random() - 0.5);
+                const list = document.getElementById('l5-list');
+                this.renderL5(shuffled);
+            },
+            renderL5(items) {
+                const list = document.getElementById('l5-list');
+                list.innerHTML = '';
+                items.forEach((text, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'sort-item';
+                    item.innerHTML = `
+                        <span>${index + 1}. ${text}</span>
+                        <div class="controls">
+                            <button class="arrow-btn" onclick="game.moveL5(${index}, -1)">▲</button>
+                            <button class="arrow-btn" onclick="game.moveL5(${index}, 1)">▼</button>
+                        </div>
+                    `;
+                    item.dataset.value = text;
+                    list.appendChild(item);
                 });
+            },
+            moveL5(index, direction) {
+                const list = document.getElementById('l5-list');
+                const items = Array.from(list.children).map(i => i.dataset.value);
+                const newIndex = index + direction;
+                if (newIndex >= 0 && newIndex < items.length) {
+                    const temp = items[index];
+                    items[index] = items[newIndex];
+                    items[newIndex] = temp;
+                    this.renderL5(items);
+                }
             },
             l5Check() {
                 const correct = ["Recibir", "Ubicar", "Despachar", "Cerrar"];
-                const current = Array.from(document.getElementById('l5-list').children).map(i => i.dataset.v);
-                if(JSON.stringify(correct) === JSON.stringify(current)) this.nextLevel();
-                else this.showFeedback("ERROR DE PROTOCOLO", false);
+                const current = Array.from(document.getElementById('l5-list').children).map(i => i.dataset.value);
+                if(JSON.stringify(correct) === JSON.stringify(current)) {
+                    this.addScore(200);
+                    this.nextLevel();
+                } else {
+                    this.showFeedback("ERROR EN SECUENCIA", false);
+                    this.addScore(-50);
+                }
             }
         };
     </script>
