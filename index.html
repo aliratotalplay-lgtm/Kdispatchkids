@@ -84,7 +84,6 @@
             padding: 15px;
             position: relative;
             text-align: center;
-            overflow-y: auto; /* Permite scroll interno si fuera necesario en pantallas muy pequeñas */
         }
 
         .screen.active { display: flex; }
@@ -127,20 +126,14 @@
             box-shadow: none;
         }
 
-        /* L1: Nodos */
+        /* Nodos */
         .node-container { width: 100%; height: 300px; position: relative; background: radial-gradient(circle, #0a1f35 0%, #050a1a 100%); border-radius: 8px; border: 1px solid var(--primary); overflow: hidden; }
         .node { position: absolute; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.1s; border: 3px solid rgba(255,255,255,0.3); }
         .node-red { background: var(--danger); box-shadow: 0 0 20px var(--danger); }
         .node-white { background: #fff; box-shadow: 0 0 10px #fff; }
 
-        /* L4: Cámaras con escenas */
-        .camera-grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 10px; 
-            width: 100%; 
-            max-width: 500px; 
-        }
+        /* Cámaras */
+        .camera-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 500px; }
         .camera-feed {
             aspect-ratio: 16/9;
             background: #000;
@@ -149,11 +142,7 @@
             overflow: hidden;
             border-radius: 4px;
         }
-        .feed-static {
-            position: absolute; width: 100%; height: 100%;
-            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyBAMAAADsEZWCAAAAGFBMVEVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVF7mSDAAAACHRSTlMA9On09Pf396FmG9AAAAA5SURBVDjLY2AYBaNgFIyCUUAbYBgYGKIDGEYBBoYMBgYGBgYGBmYIgwGBAUIGBghpIBggZIDQAEYBAPsOAgX79p8XAAAAAElFTkSuQmCC');
-            opacity: 0.1;
-        }
+        .feed-static { position: absolute; width: 100%; height: 100%; background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyBAMAAADsEZWCAAAAGFBMVEVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVF7mSDAAAACHRSTlMA9On09Pf396FmG9AAAAA5SURBVDjLY2AYBaNgFIyCUUAbYBgYGKIDGEYBBoYMBgYGBgYGBmYIgwGBAUIGBghpIBggZIDQAEYBAPsOAgX79p8XAAAAAElFTkSuQmCC'); opacity: 0.1; }
         .feed-content { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #22ddff; font-family: monospace; font-size: 0.65rem; }
         .feed-alert { display: none; color: var(--danger); font-weight: bold; font-size: 1.2rem; animation: blink 0.5s infinite; }
         .camera-feed.alert-active { border-color: var(--danger); box-shadow: inset 0 0 15px rgba(255,0,0,0.4); }
@@ -162,57 +151,44 @@
 
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-        /* L5: Protocolo con flechas */
+        /* Lista Protocolo */
         .sortable-list { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 8px; }
-        .sort-item {
-            padding: 12px;
-            background: #0a1f35;
-            border: 1.5px solid var(--secondary);
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9rem;
-        }
+        .sort-item { padding: 12px; background: #0a1f35; border: 1.5px solid var(--secondary); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
         .controls { display: flex; gap: 5px; }
-        .arrow-btn { 
-            background: rgba(0, 212, 255, 0.2); 
-            border: 1px solid var(--primary); 
-            color: var(--primary); 
-            width: 35px; height: 35px; 
-            border-radius: 4px; 
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1rem;
-            cursor: pointer;
-        }
+        .arrow-btn { background: rgba(0, 212, 255, 0.2); border: 1px solid var(--primary); color: var(--primary); width: 35px; height: 35px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; }
 
-        /* Feedback */
+        /* Feedback Centralizado */
         #feedback {
             position: absolute;
-            top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 2rem; font-weight: bold; z-index: 1000;
-            pointer-events: none; opacity: 0; transition: opacity 0.3s;
-            text-shadow: 2px 2px 5px #000;
-            width: 100%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            text-align: center;
+            font-size: 3rem;
+            font-weight: 900;
+            z-index: 2000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s, transform 0.2s;
+            text-shadow: 0 0 20px rgba(0,0,0,0.8), 0 0 10px currentColor;
+            letter-spacing: 4px;
         }
-        .show-feedback { opacity: 1 !important; }
+        .show-feedback { opacity: 1 !important; transform: translate(-50%, -50%) scale(1.1); }
 
         @media (max-height: 700px) {
             h1 { font-size: 1.8rem; }
             .node-container { height: 220px; }
             .instruction-box { font-size: 0.8rem; margin-bottom: 10px; }
-            .camera-grid { gap: 8px; }
             .btn { padding: 12px 20px; font-size: 0.85rem; }
+            #feedback { font-size: 2.2rem; }
         }
 
         @media (max-width: 480px) {
             h1 { font-size: 2rem; }
             #game-container { height: 95vh; }
-            .camera-grid { 
-                grid-template-columns: 1fr 1fr; /* Mantenemos 2x2 pero más compacto */
-                max-width: 100%;
-            }
-            .feed-alert { font-size: 1rem; }
+            .camera-grid { grid-template-columns: 1fr 1fr; max-width: 100%; }
+            #feedback { font-size: 2.5rem; }
         }
     </style>
 </head>
@@ -240,7 +216,7 @@
         <!-- Nivel 1 -->
         <div id="level-1" class="screen">
             <div class="instruction-box">
-                <strong>ATENCIÓN:</strong> Toca los 8 <span style="color:var(--danger); font-weight:bold;">NODOS ROJOS</span>. ¡Ignora los blancos!
+                <strong>ATENCIÓN:</strong> Toca los 8 <span style="color:var(--danger); font-weight:bold;">NODOS ROJOS</span>.
             </div>
             <div class="node-container" id="l1-container"></div>
         </div>
@@ -320,14 +296,12 @@
 
         <div id="game-over" class="screen">
             <h1 style="font-size: 2rem;">SISTEMA CAÍDO</h1>
-            <p>Se ha perdido el control.</p>
             <button class="btn" onclick="location.reload()">Reiniciar</button>
         </div>
 
         <div id="win-screen" class="screen">
             <h1 style="color:var(--success); text-shadow: 0 0 20px var(--success); font-size: 2rem;">CIUDAD SEGURA</h1>
             <div id="final-score" style="font-size: 2rem; margin: 5px 0;">0000</div>
-            <p style="font-size: 0.9rem;">Operación Kabat One completada.</p>
             <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%;">
                 <button class="btn" style="width: 80%;" onclick="location.reload()">Nueva Misión</button>
                 <a href="https://www.kabatone.com" target="_blank" class="btn btn-outline" style="width: 80%; font-size: 0.8rem; padding: 12px;">conoce más en www.kabatone.com</a>
@@ -367,12 +341,12 @@
                 this[`initL${this.currentLevel}`]();
             },
 
-            showFeedback(t, s) {
+            showFeedback(text, isSuccess) {
                 const f = document.getElementById('feedback');
-                f.innerText = t;
-                f.style.color = s ? 'var(--success)' : 'var(--danger)';
+                f.innerText = text;
+                f.style.color = isSuccess ? 'var(--success)' : 'var(--danger)';
                 f.classList.add('show-feedback');
-                setTimeout(() => f.classList.remove('show-feedback'), 800);
+                setTimeout(() => f.classList.remove('show-feedback'), 700);
             },
 
             addScore(p) {
@@ -390,7 +364,7 @@
                 clearInterval(this.timer);
                 document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
                 document.getElementById('win-screen').classList.add('active');
-                document.getElementById('final-score').innerText = `SCORE: ${this.score}`;
+                document.getElementById('final-score').innerText = `PUNTOS: ${this.score}`;
             },
 
             l1Count: 0,
@@ -419,7 +393,7 @@
                         }
                     } else {
                         this.addScore(-25);
-                        this.showFeedback("ERROR", false);
+                        this.showFeedback("FALLO", false);
                     }
                 };
                 c.appendChild(n);
@@ -461,6 +435,7 @@
             l3Check(t) {
                 if(t === this.l3Type) {
                     this.addScore(100);
+                    this.showFeedback("DESPACHADO", true);
                     this.nextLevel();
                 } else {
                     this.addScore(-50);
@@ -533,6 +508,7 @@
                 const current = Array.from(document.getElementById('l5-list').children).map(i => i.dataset.value);
                 if(JSON.stringify(correct) === JSON.stringify(current)) {
                     this.addScore(200);
+                    this.showFeedback("SISTEMA OK", true);
                     this.nextLevel();
                 } else {
                     this.showFeedback("FALLO", false);
