@@ -332,16 +332,31 @@
         /* GAME OVER & WIN */
         .result-title {
             font-size: 3rem;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
         .victory-message {
             font-size: 1.5rem;
             color: var(--primary);
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             text-shadow: 0 0 10px var(--primary);
             font-style: italic;
+        }
+
+        .web-link {
+            font-size: 1.1rem;
+            color: var(--primary);
+            text-decoration: none;
+            margin-bottom: 25px;
+            opacity: 0.8;
+            transition: 0.3s;
+            border-bottom: 1px solid transparent;
+        }
+
+        .web-link:hover {
+            opacity: 1;
+            border-bottom: 1px solid var(--primary);
         }
 
         .stats {
@@ -417,7 +432,7 @@
                 <div class="unit-card" onclick="game.l3Check('patrol')">
                     <strong>Patrulla</strong><br><small>Orden Público</small>
                 </div>
-                <div class="unit-card" onclick="game.l3Check('ambulance')">
+                <div class="unit-card" onclick="game.l3Check('ambulance') = true">
                     <strong>Ambulancia</strong><br><small>Atención Médica</small>
                 </div>
                 <div class="unit-card" onclick="game.l3Check('fire')">
@@ -467,6 +482,7 @@
         <!-- WIN SCREEN -->
         <div id="win-screen" class="screen">
             <h2 class="result-title success-text">CIUDAD PROTEGIDA</h2>
+            <a href="https://www.kabat.com" target="_blank" class="web-link">Conoce más en www.kabat.com</a>
             <p class="victory-message">"Juntos salvamos vidas, misión cumplida"</p>
             <div class="stats">
                 <p>Puntaje Final: <span id="final-score">0</span></p>
